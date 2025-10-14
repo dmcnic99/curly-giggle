@@ -318,50 +318,61 @@ def PhaseFour(puzzle):
 
 def PhaseFive(puzzle):
     """
-    Looks for squares with a filled row, finds missing numbers,
-    and checks for potential cross pairs to fill cells.
-    Returns the updated puzzle string and True if a cell was filled, else False.
+    Converted from VBA PhaseFive:
+    - Look for 3x3 squares that have 4 filled cells.
+    - If one row inside the square is completely filled and another is empty,
+      iterate the digits present in the empty row (outside the square) that are
+      also missing from the square (potentials). For each such digit, check the
+      two other rows in the square for a single viable column (cell empty and
+      column doesn't contain the digit). If exactly one candidate cell exists,
+      place the digit and return (puzzle, True).
     """
     row_list = CreateRows(puzzle)
     column_list = CreateColumns(row_list)
     square_list = CreateSquares(puzzle)
-    puzzle_changed = False
 
-    # Helper to get the indices for a square
-    def square_indices(x, y):
-        # x, y are 0-based (0..2)
-        return [(i, j) for i in range(x * 3, x * 3 + 3) for j in range(y * 3, y * 3 + 3)]
+    for sx in range(3):
+        for sy in range(3):
+            sq_idx = sx * 3 + sy
+            # square_list element may contain '0' for blanks; consider only filled digits
+            square_filled = ''.join(ch for ch in square_list[sq_idx] if ch != '0')
+            if len(square_filled) == 4:
+                # potentials = digits missing from the square
+                potentials = [d for d in "123456789" if d not in square_filled]
 
-    # Check each square for length 4 (4 filled cells)
-    for x in range(3):
-        for y in range(3):
-            square_str = square_list[x * 3 + y]
-            if len(square_str.replace('0', '')) == 4:
-                # Find missing numbers
-                potentials = [str(n) for n in range(1, 10) if str(n) not in square_str]
-                # Count filled cells in each row of the square
+                # Count filled cells in each of the 3 rows within this square
                 cell_counts = []
                 for i in range(3):
-                    row_idx = x * 3 + i
-                    count = sum(1 for col_idx in range(y * 3, y * 3 + 3) if row_list[row_idx][col_idx] != '0')
+                    row_idx = sx * 3 + i
+                    count = sum(1 for c in range(sy * 3, sy * 3 + 3) if row_list[row_idx][c] != "0")
                     cell_counts.append(count)
-                # If any row is fully filled (count == 3)
+
+                # If one row is full (3) and another is empty (0), run checks
                 if 3 in cell_counts:
-                    # Find empty row in the square (count == 0)
                     for i, cnt in enumerate(cell_counts):
                         if cnt == 0:
-                            row_idx = x * 3 + i
-                            # For each missing number, check if it can be placed
-                            for num in potentials:
-                                for col_offset in range(3):
-                                    col_idx = y * 3 + col_offset
-                                    if row_list[row_idx][col_idx] == '0':
-                                        # Check if num is not in column or square
-                                        if num not in column_list[col_idx] and num not in square_str:
-                                            # Place the number
-                                            idx = row_idx * 9 + col_idx
-                                            puzzle = puzzle[:idx] + num + puzzle[idx + 1:]
-                                            console.print(f"[dim]Phase 5: Value {num} placed at row {row_idx+1} and col {col_idx+1}[/]", highlight=False)
+                            empty_row_idx = sx * 3 + i
+                            # iterate digits present in that row (exclude '0')
+                            present_digits = [ch for ch in row_list[empty_row_idx] if ch != "0"]
+                            for digit in present_digits:
+                                if digit in potentials:
+                                    # check the other two rows in this square
+                                    for offset in (1, 2):
+                                        test_row_local = (i + offset) % 3  # 0..2 within square
+                                        test_row_idx = sx * 3 + test_row_local
+                                        testcells = []
+                                        for l in range(3):
+                                            col_idx = sy * 3 + l
+                                            cell_empty = (row_list[test_row_idx][col_idx] == "0")
+                                            col_ok = (digit not in column_list[col_idx])
+                                            testcells.append(1 if (cell_empty and col_ok) else 0)
+                                        if sum(testcells) == 1:
+                                            # find which column within square is the candidate
+                                            l = testcells.index(1)
+                                            col_idx = sy * 3 + l
+                                            idx = test_row_idx * 9 + col_idx
+                                            puzzle = puzzle[:idx] + digit + puzzle[idx + 1 :]
+                                            console.print(f"[dim]PhaseFive: Placed {digit} at row {test_row_idx+1}, col {col_idx+1}[/]")
                                             return puzzle, True
     return puzzle, False
 
