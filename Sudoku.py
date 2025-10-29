@@ -56,6 +56,21 @@ def Non_Zero_Count(segment):
     return sum(1 for c in segment if c != "0")
 
 
+def No_Duplicates(segment):
+    return len(set([c for c in segment if c != "0"]))
+
+
+def FaultCheck(puzzle):
+    # FaultCheck checks for duplicates in rows, columns, and squares
+    row_list = CreateRows(puzzle)
+    column_list = CreateColumns(row_list)
+    square_list = CreateSquares(puzzle)
+    for segment in row_list + column_list + square_list:
+        if Non_Zero_Count(segment) != No_Duplicates(segment):
+            return False
+    return True
+
+
 def PhaseZero(puzzle):
     # Phase Zero checks if the puzzle is complete
     if Non_Zero_Count(puzzle) < 81:
@@ -77,7 +92,8 @@ def PhaseOne(puzzle):
             # determine missing value
             missing_value = str((set("123456789") - set(each_row)).pop())
             # print what is being changed
-            console.print(f"[dim]1: last value of {missing_value} for row {ndx + 1} at column {zero_index + 1}[/]", highlight = False)
+            s = f"\t[dim]1: last value of {missing_value} for row {ndx + 1} at column {zero_index + 1}[/]"
+            console.print(s.expandtabs(tabsize=1), highlight = False)
             # replace the missing value in puzzle
             puzzle = puzzle[: ndx * 9 + zero_index] + missing_value + puzzle[ndx * 9 + zero_index + 1 :]
             return puzzle, True
@@ -92,7 +108,8 @@ def PhaseOne(puzzle):
             # determine missing value
             missing_value = str((set("123456789") - set(each_column)).pop())
             # print what is being changed
-            console.print(f"[dim]1: last value of {missing_value} for column {ndx + 1} at row {zero_index + 1}[/]", highlight = False)
+            s = f"\t[dim]1: last value of {missing_value} for column {ndx + 1} at row {zero_index + 1}[/]"
+            console.print(s.expandtabs(tabsize=1), highlight = False)
             # replace the missing value in puzzle
             puzzle = puzzle[: zero_index * 9 + ndx] + missing_value + puzzle[zero_index * 9 + ndx + 1 :]
             return puzzle, True
@@ -110,7 +127,9 @@ def PhaseOne(puzzle):
             location_index = square_index[ndx][zero_index]
             row = int(location_index / 9)
             column = location_index % 9
-            console.print(f"[dim]1: last value of {missing_value} for square {ndx+1} at row {row + 1} and column {column}[/]", highlight = False)
+            # print what is being changed
+            s = f"\t[dim]1: last value of {missing_value} for square {ndx+1} at row {row + 1} and column {column}[/]"
+            console.print(s.expandtabs(tabsize=1), highlight = False)
             # replace the missing value in puzzle
             puzzle = puzzle[: row * 9 + column - 1] + missing_value + puzzle[row * 9 + column :]
             return puzzle, True
@@ -146,7 +165,9 @@ def PhaseTwo(puzzle):
                     r, c = candidates[0]
                     # replace the zero with test_val in the puzzle string
                     puzzle = puzzle[: r * 9 + c] + test_val + puzzle[r * 9 + c + 1 :]
-                    console.print(f"[dim]2: value {test_val} placed in row {r + 1} and column {c + 1}[/]", highlight = False)
+                    # print what is being changed
+                    s = f"\t[dim]2: value {test_val} placed in row {r + 1} and column {c + 1}[/]"
+                    console.print(s.expandtabs(tabsize=2), highlight = False)
                     return puzzle, True
     # check column triplets
     for i in range(0, 9, 3):
@@ -165,7 +186,9 @@ def PhaseTwo(puzzle):
                 if len(candidates) == 1:
                     r, c = candidates[0]
                     puzzle = puzzle[: r * 9 + c] + test_val + puzzle[r * 9 + c + 1 :]
-                    console.print(f"[dim]2: value {test_val} placed in column {c + 1} at row {r + 1}[/]", highlight = False)
+                    # print what is being changed
+                    s = f"\t[dim]2: value {test_val} placed in column {c + 1} at row {r + 1}[/]"
+                    console.print(s.expandtabs(tabsize=2), highlight = False)
                     return puzzle, True
     return puzzle, False
 
@@ -193,7 +216,8 @@ def PhaseThree(puzzle):
                     if (first_val not in col) and (second_val in col):
                         idx = i * 9 + j
                         puzzle = puzzle[:idx] + first_val + puzzle[idx+1:]
-                        console.print(f"[dim]3: value {first_val} placed in row {i+1} at column {j+1}[/]", highlight = False)
+                        s = f"[dim]\t3: value {first_val} placed in row {i+1} at column {j+1}[/]"
+                        console.print(s.expandtabs(tabsize=3), highlight = False)
                         return puzzle, True
                     elif (first_val in col) and (second_val not in col):
                         idx = i * 9 + j
@@ -241,7 +265,7 @@ def PhaseThree(puzzle):
                         return puzzle, True
                     elif (second_val in row) or (second_val in col):
                         puzzle = puzzle[:idx] + first_val + puzzle[idx+1:]
-                        console.print(f"[dim]Phase Three: Value {first_val} placed at row {i+1}, column {j+1}[/]", highlight=False)
+                        console.print(f"[dim]3: Value {first_val} placed in square {sq_idx} at row {i+1} and column {j+1}[/]", highlight=False)
                         return puzzle, True
 
     return puzzle, False
@@ -270,7 +294,8 @@ def PhaseFour(puzzle):
                     if len(cross_potentials) == 1:
                         idx = i * 9 + j
                         puzzle = puzzle[:idx] + cross_potentials[0] + puzzle[idx+1:]
-                        console.print(f"[dim]Phase 4: Value {cross_potentials[0]} placed at row {i+1} and column {j+1}[/]", highlight=False)
+                        s = f"[dim]\t4: value {cross_potentials[0]} placed at row {i+1} and column {j+1}[/]"
+                        console.print(s.expandtabs(tabsize=4), highlight=False)
                         return puzzle, True
 
     # --- Columns of length 5 or 6 ---
@@ -287,7 +312,8 @@ def PhaseFour(puzzle):
                     if len(cross_potentials) == 1:
                         idx = i * 9 + j
                         puzzle = puzzle[:idx] + cross_potentials[0] + puzzle[idx+1:]
-                        console.print(f"[dim]Phase Four: Value {cross_potentials[0]} placed at row {i+1}, column {j+1}[/]", highlight=False)
+                        s = f"[dim]\t4: Value {cross_potentials[0]} placed at row {i+1}, column {j+1}[/]"
+                        console.print(s.expandtabs(tabsize=4), highlight=False)
                         return puzzle, True
 
     # --- Squares of length 6: hidden singles ---
@@ -372,7 +398,8 @@ def PhaseFive(puzzle):
                                             col_idx = sy * 3 + l
                                             idx = test_row_idx * 9 + col_idx
                                             puzzle = puzzle[:idx] + digit + puzzle[idx + 1 :]
-                                            console.print(f"[dim]PhaseFive: Placed {digit} at row {test_row_idx+1}, col {col_idx+1}[/]")
+                                            s = f"[dim]\t5: value {digit} placed in row {test_row_idx+1} and col {col_idx+1}[/]"
+                                            console.print(s.expandtabs(tabsize=5), highlight=False)
                                             return puzzle, True
     return puzzle, False
 
@@ -446,7 +473,30 @@ def PhaseSix(puzzle):
     return puzzle, False
 
 
-def NothingLeft(puzzle):
+def CellCandidates(puzzle):
+    """
+    Returns a list of sets, where each set contains the possible candidates for each cell in the puzzle.
+    Each cell is represented by its index in the puzzle string.
+    """
+    all_numbers = "123456789"
+    row_list = CreateRows(puzzle)
+    column_list = CreateColumns(row_list)
+    square_list = CreateSquares(puzzle)
+    candidates = [[set() for _ in range(9)] for _ in range(9)]
+
+    for x in range(9):
+        for y in range(9):
+            if row_list[x][y] == "0":
+                possible = set(all_numbers)
+                possible -= set(row_list[x])
+                possible -= set(column_list[y])
+                possible -= set(square_list[(x // 3) * 3 + (y // 3)])
+                candidates[x][y] = possible
+
+    return candidates
+
+
+def PhaseSeven(puzzle):
     """
     Fills in cells where only one possible value can go,
     and checks for unique candidates in columns, rows, and squares.
@@ -476,7 +526,8 @@ def NothingLeft(puzzle):
                 val = candidates[x][y].pop()
                 idx = x * 9 + y
                 puzzle = puzzle[:idx] + val + puzzle[idx + 1:]
-                console.print(f"[dim]NothingLeft: Placed {val} at row {x+1} and col {y+1}[/]", highlight = False)
+                s = f"\t[dim]NothingLeft: Placed {val} at row {x+1} and col {y+1}[/]"
+                console.print(s.expandtabs(tabsize=7), highlight = False)
                 return puzzle, True
 
     # Step 3: Unique candidate in a column
@@ -489,7 +540,8 @@ def NothingLeft(puzzle):
                     if num in candidates[x][y]:
                         idx = x * 9 + y
                         puzzle = puzzle[:idx] + num + puzzle[idx + 1:]
-                        print(f"NothingLeft: Unique {num} in column {y+1} at row {x+1}")
+                        s = f"\tNothingLeft: Unique {num} in column {y+1} at row {x+1}"
+                        console.print(s.expandtabs(tabsize=7), highlight = False)
                         return puzzle, True
 
     # Step 4: Unique candidate in a row
@@ -502,7 +554,8 @@ def NothingLeft(puzzle):
                     if num in candidates[x][y]:
                         idx = x * 9 + y
                         puzzle = puzzle[:idx] + num + puzzle[idx + 1:]
-                        print(f"NothingLeft: Unique {num} in row {x+1} at col {y+1}")
+                        s = f"\tNothingLeft: Unique {num} in row {x+1} at col {y+1}"
+                        console.print(s.expandtabs(tabsize=7), highlight = False)
                         return puzzle, True
 
     # Step 5: Unique candidate in a square
@@ -518,7 +571,8 @@ def NothingLeft(puzzle):
                         if num in candidates[x][y]:
                             idx = x * 9 + y
                             puzzle = puzzle[:idx] + num + puzzle[idx + 1:]
-                            console.print(f"[dim]NothingLeft: Unique {num} in square {sq+1} at row {x+1}, col {y+1}", highlight = False)
+                            s = f"\t[dim]NothingLeft: Unique {num} in square {sq+1} at row {x+1}, col {y+1}"
+                            console.print(s.expandtabs(tabsize=7), highlight = False)
                             return puzzle, True
 
     return puzzle, False
@@ -531,6 +585,9 @@ def Completed(puzzle, args):
         console.rule("[bold green]Conclusion")
         console.print(f"[green reverse]Puzzle {args.book}-{args.puzzle} solved![/]", highlight=False)
         print_sudoku(puzzle)
+        if 'Double' in args.book:
+            with open("data/output/DoubleSudoku202512.csv", "a") as f:
+                f.write(f"{args.puzzle},Solved\n")
         sys.exit(0)
     return
 
@@ -539,6 +596,7 @@ def main(args):
     if args.function == "add":   # add a puzzle that isn't solved to the data/output/Puzzle.csv file
         with open("data/output/Puzzle.csv", "a") as f:
             f.write(f"Dell{args.book},{args.puzzle}\n")
+        console.print(f"[green]Puzzle Dell{args.book}-{args.puzzle} added to data/output/Puzzle.csv[/]", highlight=False)
     elif args.function == "delete":  # delete a puzzle from the data/output/Puzzle.csv file
         df = pd.read_csv("data/output/Puzzle.csv")
         # print(df.dtypes, flush = True)
@@ -547,19 +605,26 @@ def main(args):
         post_cut = df.shape[0]
         df.to_csv("data/output/Puzzle.csv", index = False)
         if pre_cut == post_cut:
-            console.print(f"[bold]Puzzle Dell{args.book}-{args.puzzle} not found in data/output/Puzzle.csv[/]", highlight=False)
+            console.print(f"[bold red]Puzzle Dell{args.book}-{args.puzzle} not found in data/output/Puzzle.csv[/]", highlight=False)
         else:
-            console.print(f"Puzzle Dell{args.book}-{args.puzzle} deleted from data/output/Puzzle.csv", highlight=False)
+            console.print(f"[green]Puzzle Dell{args.book}-{args.puzzle} deleted from data/output/Puzzle.csv[/]", highlight=False)
     elif args.function == "solve":
         # Load the dataset
-        df = pd.read_csv("../../Puzzles/Dell" + args.book + ".csv")
+        if 'Double' in args.book:
+            df = pd.read_csv("../../Puzzles/" + args.book + ".csv")
+            print(df.head())
+        else:
+            df = pd.read_csv("../../Puzzles/Dell" + args.book + ".csv")
 
         # print the number of puzzles -- this is shape[0]
         console.rule("[bold blue]Foundation")
         console.print(f"There are {df.shape[0]:.0f} puzzles in Dell{args.book}", highlight=False)
 
         # set the puzzle variable
-        source = "Dell" + args.book + "-" + args.puzzle
+        if 'Double' in args.book:
+            source = int(args.puzzle)
+        else:
+            source = "Dell" + args.book + "-" + args.puzzle
         puzzle = df[df["Source"] == source]["Puzzle"].iloc[0]
         print_sudoku(puzzle)
         console.print(f"[bold]Puzzle {args.puzzle} has {81 - Non_Zero_Count(puzzle)} zero cells[/]", highlight=False)
@@ -570,29 +635,79 @@ def main(args):
             # find any RCS that is exactly 8 in non-zero length
             puzzle_step = False
             puzzle, puzzle_step = PhaseOne(puzzle)
+            if puzzle_step == True:
+                if FaultCheck(puzzle) == False:
+                    console.print(f"[bold red]Fault detected after Phase One on Dell {args.book}-{args.puzzle}[/]", highlight=False)
+                    print_sudoku(puzzle)
+                    break
             Completed(puzzle, args)
             if puzzle_step == False:
                 puzzle, puzzle_step = PhaseTwo(puzzle)
+                if puzzle_step == True:
+                    if FaultCheck(puzzle) == False:
+                        console.print(f"[bold red]Fault detected after Phase Two on Dell {args.book}-{args.puzzle}[/]", highlight=False)
+                        print_sudoku(puzzle)
+                        break
             Completed(puzzle, args)
             if puzzle_step == False:
                 puzzle, puzzle_step = PhaseThree(puzzle)
+                if puzzle_step == True:
+                    if FaultCheck(puzzle) == False:
+                        console.print(f"[bold red]Fault detected after Phase Three on Dell {args.book}-{args.puzzle}[/]", highlight=False)
+                        print_sudoku(puzzle)
+                        break
             Completed(puzzle, args)
             if puzzle_step == False:
                 puzzle, puzzle_step = PhaseFour(puzzle)
+                if puzzle_step == True:
+                    if FaultCheck(puzzle) == False:
+                        console.print(f"[bold red]Fault detected after Phase Four on Dell {args.book}-{args.puzzle}[/]", highlight=False)
+                        print_sudoku(puzzle)
+                        break
             Completed(puzzle, args)
             if puzzle_step == False:
                 puzzle, puzzle_step = PhaseFive(puzzle)
+                if puzzle_step == True:
+                    if FaultCheck(puzzle) == False:
+                        console.print(f"[bold red]Fault detected after Phase Five on Dell {args.book}-{args.puzzle}[/]", highlight=False)
+                        print_sudoku(puzzle)
+                        break
             Completed(puzzle, args)
             if puzzle_step == False:
                 puzzle, puzzle_step = PhaseSix(puzzle)
+                if puzzle_step == True:
+                    if FaultCheck(puzzle) == False:
+                        console.print(f"[bold red]Fault detected after Phase Six on Dell {args.book}-{args.puzzle}[/]", highlight=False)
+                        print_sudoku(puzzle)
+                        break
             Completed(puzzle, args)
             if puzzle_step == False:
-                puzzle, puzzle_step = NothingLeft(puzzle)
+                puzzle, puzzle_step = PhaseSeven(puzzle)
+                if puzzle_step == True:
+                    if FaultCheck(puzzle) == False:
+                        console.print(f"[bold red]Fault detected after Phase Seven on Dell {args.book}-{args.puzzle}[/]", highlight=False)
+                        print_sudoku(puzzle)
+                        break
             Completed(puzzle, args)
             if puzzle_step == False:
                 console.rule("[bold red]Conclusion")
                 console.print(f"Nothing else to do on Dell {args.book}-{args.puzzle}", highlight=False)
                 print_sudoku(puzzle)
+                if 'Double' in args.book:
+                    with open("data/output/DoubleSudoku202512.csv", "a") as f:
+                        f.write(f"{args.puzzle},Unsolved\n")
+                candidates = CellCandidates(puzzle)
+                # console.print("[dim]Candidates for each cell:[/]", highlight=False)
+                # write candidates row by row
+                with open("data/output/candidates.txt", "w") as f:
+                    for i in range(9):
+                        row_candidates = [sorted(candidates[i][j]) for j in range(9)]
+                        f.write(f"row[{i}]={row_candidates}\n")
+
+
+                # for i in range(9):
+                #     row_candidates = [sorted(candidates[i][j]) for j in range(9)]
+                #     console.print(f"Row {i+1}: {row_candidates}", highlight=False)
                 break
     return
 
@@ -619,3 +734,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     main(args)
+
+
