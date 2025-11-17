@@ -1,6 +1,7 @@
 # imports
 import argparse
 import pandas as pd
+from prettytable import PrettyTable
 from rich import print
 from rich.console import Console
 import sys
@@ -216,13 +217,14 @@ def PhaseThree(puzzle):
                     if (first_val not in col) and (second_val in col):
                         idx = i * 9 + j
                         puzzle = puzzle[:idx] + first_val + puzzle[idx+1:]
-                        s = f"[dim]\t3: value {first_val} placed in row {i+1} at column {j+1}[/]"
+                        s = f"\t[dim]3: value {first_val} placed in row {i+1} at column {j+1}[/]"
                         console.print(s.expandtabs(tabsize=3), highlight = False)
                         return puzzle, True
                     elif (first_val in col) and (second_val not in col):
                         idx = i * 9 + j
                         puzzle = puzzle[:idx] + second_val + puzzle[idx+1:]
-                        console.print(f"[dim]3: value {second_val} placed in row {i+1} at column {j+1}[/]", highlight=False)
+                        s = f"\t[dim]3: value {second_val} placed in row {i+1} at column {j+1}[/]"
+                        console.print(s.expandtabs(tabsize=3), highlight=False)
                         return puzzle, True
 
     # --- Check for columns of length 7 ---
@@ -238,12 +240,14 @@ def PhaseThree(puzzle):
                     if (first_val not in row) and (second_val in row):
                         idx = i * 9 + j
                         puzzle = puzzle[:idx] + first_val + puzzle[idx+1:]
-                        console.print(f"[dim]Phase Three: Value {first_val} placed at row {i+1}, column {j+1}[/]", highlight=False)
+                        s = f"\t[dim]3: value {first_val} placed at row {i+1} and column {j+1}[/]"
+                        console.print(s.expandtabs(tabsize=3), highlight=False)
                         return puzzle, True
                     elif (first_val in row) and (second_val not in row):
                         idx = i * 9 + j
                         puzzle = puzzle[:idx] + second_val + puzzle[idx+1:]
-                        console.print(f"[dim]Phase Three: Value {second_val} placed at row {i+1}, column {j+1}[/]", highlight=False)
+                        s = f"\t[dim]3: value {second_val} placed at row {i+1} and column {j+1}[/]"
+                        console.print(s.expandtabs(tabsize=3), highlight=False)
                         return puzzle, True
 
     # --- Check for squares of length 7 ---
@@ -261,11 +265,13 @@ def PhaseThree(puzzle):
                     col = column_list[j]
                     if (first_val in row) or (first_val in col):
                         puzzle = puzzle[:idx] + second_val + puzzle[idx+1:]
-                        console.print(f"[dim]Phase Three: Value {second_val} placed at row {i+1}, column {j+1}[/]", highlight=False)
+                        s = f"\t[dim]3: Value {second_val} placed at row {i+1}, column {j+1}[/]"
+                        console.print(s.expandtabs(tabsize=3), highlight=False)
                         return puzzle, True
                     elif (second_val in row) or (second_val in col):
                         puzzle = puzzle[:idx] + first_val + puzzle[idx+1:]
-                        console.print(f"[dim]3: Value {first_val} placed in square {sq_idx} at row {i+1} and column {j+1}[/]", highlight=False)
+                        s = f"[dim]\t3: Value {first_val} placed in square {sq_idx} at row {i+1} and column {j+1}[/]"
+                        console.print(s.expandtabs(tabsize=3), highlight=False)
                         return puzzle, True
 
     return puzzle, False
@@ -294,7 +300,7 @@ def PhaseFour(puzzle):
                     if len(cross_potentials) == 1:
                         idx = i * 9 + j
                         puzzle = puzzle[:idx] + cross_potentials[0] + puzzle[idx+1:]
-                        s = f"[dim]\t4: value {cross_potentials[0]} placed at row {i+1} and column {j+1}[/]"
+                        s = f"\t[dim]4: value {cross_potentials[0]} placed at row {i+1} and column {j+1}[/]"
                         console.print(s.expandtabs(tabsize=4), highlight=False)
                         return puzzle, True
 
@@ -336,7 +342,8 @@ def PhaseFour(puzzle):
                 if count == 1 and last_pos:
                     i, j, idx = last_pos
                     puzzle = puzzle[:idx] + val + puzzle[idx+1:]
-                    console.print(f"[dim]Phase Four: Value {val} placed at row {i+1}, column {j+1}[/]", highlight=False)
+                    s = f"\t[dim]4: Value {val} placed at row {i+1} and column {j+1}[/]"
+                    console.print(s.expandtabs(tabsize=4), highlight=False)
                     return puzzle, True
 
     return puzzle, False
@@ -467,7 +474,8 @@ def PhaseSix(puzzle):
                         if num not in row_list[row]:
                             idx = row * 9 + col_idx
                             puzzle = puzzle[:idx] + num + puzzle[idx + 1:]
-                            console.print(f"[dim]Phase 6: Value {num} placed at row {row+1} and col {col_idx+1}[/]", highlight=False)
+                            s = f"\t[dim]6: Value {num} placed at row {row+1} and col {col_idx+1}[/dim]"
+                            console.print(s.expandtabs(tabsize=6), highlight=False)
                             return puzzle, True
 
     return puzzle, False
@@ -482,7 +490,7 @@ def CellCandidates(puzzle):
     row_list = CreateRows(puzzle)
     column_list = CreateColumns(row_list)
     square_list = CreateSquares(puzzle)
-    candidates = [[set() for _ in range(9)] for _ in range(9)]
+    candidates = [[list() for _ in range(9)] for _ in range(9)]
 
     for x in range(9):
         for y in range(9):
@@ -491,7 +499,7 @@ def CellCandidates(puzzle):
                 possible -= set(row_list[x])
                 possible -= set(column_list[y])
                 possible -= set(square_list[(x // 3) * 3 + (y // 3)])
-                candidates[x][y] = possible
+                candidates[x][y] = list(possible)
 
     return candidates
 
@@ -540,7 +548,7 @@ def PhaseSeven(puzzle):
                     if num in candidates[x][y]:
                         idx = x * 9 + y
                         puzzle = puzzle[:idx] + num + puzzle[idx + 1:]
-                        s = f"\tNothingLeft: Unique {num} in column {y+1} at row {x+1}"
+                        s = f"\t[dim]7: unique {num} in column {y+1} at row {x+1}[/dim]"
                         console.print(s.expandtabs(tabsize=7), highlight = False)
                         return puzzle, True
 
@@ -554,7 +562,7 @@ def PhaseSeven(puzzle):
                     if num in candidates[x][y]:
                         idx = x * 9 + y
                         puzzle = puzzle[:idx] + num + puzzle[idx + 1:]
-                        s = f"\tNothingLeft: Unique {num} in row {x+1} at col {y+1}"
+                        s = f"\t[dim]7: Unique {num} in row {x+1} at col {y+1}[/dim]"
                         console.print(s.expandtabs(tabsize=7), highlight = False)
                         return puzzle, True
 
@@ -575,6 +583,195 @@ def PhaseSeven(puzzle):
                             console.print(s.expandtabs(tabsize=7), highlight = False)
                             return puzzle, True
 
+    return puzzle, False
+
+
+def Transpose(rc_list):
+    return [[rc_item[i] for rc_item in rc_list] for i in range(9)]
+
+
+def PhaseEight(puzzle):
+    # Placeholder for Phase Eight implementation
+    # Phase Eight uses the cell candidates to look for pairs in rows or columns
+    candidates = CellCandidates(puzzle)
+    # candidates is in row form
+    column_candidates = Transpose(candidates)
+    candidate_change = True
+    puzzle_change = False
+    pair_ndx = None
+
+    def SingleValueColumn(puzzle):
+        idx = row_index * 9 + col_index
+        val = column_candidates[col_index][row_index].pop()
+        puzzle = puzzle[:idx] + val + puzzle[idx + 1:]
+        s = f"\t[dim]8: value {val} placed at row {row_index+1} and column {col_index+1}[/]"
+        console.print(s.expandtabs(tabsize=8), highlight=False)
+        return puzzle
+    
+    def SingleValueRow(puzzle):
+        idx = row_index * 9 + col_index
+        val = row_candidates[row_index][col_index].pop()
+        puzzle = puzzle[:idx] + val + puzzle[idx + 1:]
+        s = f"\t[dim]8: value {val} placed at row {row_index+1} and column {col_index+1}[/]"
+        console.print(s.expandtabs(tabsize=8), highlight=False)
+        return puzzle
+        
+    while candidate_change == True:
+        candidate_change = False
+        # look for pairs in columns
+        for n,col in enumerate(column_candidates):
+            two_candidates = [x for x in col if len(x) == 2]
+            # find identical iteams in two_candidates
+            pair = [x for x in two_candidates if two_candidates.count(x) == 2]
+            # print(f'{two_candidates=}')
+            # print(f"{pair=}")
+            # find the unique values in candidates
+            if pair != []:
+                if len(pair) == 2:
+                    unique_candidates = [pair[0]]
+                else:
+                    # unique_candidates = []
+                    # for c in col:
+                    #     if len(c) == 2:
+                    #         if c not in unique_candidates:
+                    #             unique_candidates.append(c)
+                    unique_candidates = [x for x in two_candidates if two_candidates.count(x) == 1 and len(x)==2]
+                # print(f'{unique_candidates=}')
+                for uc in unique_candidates:
+                    pair_ndx = [[n,i] for i, x in enumerate(col) if x == uc]
+                    # print(f'{pair_ndx=}')
+                    # for each item in pair[0], drop it from each item in col
+                    for val in pair[0]:
+                        # print(f"Length of col is {len(col)}")
+                        # print(f"{val=}")
+                        for i in range(len(col)):
+                            # print(f"{i=}")
+                            if col[i] != pair[0]:
+                                if val in col[i]:
+                                    col[i].remove(val)
+                                    candidate_change = True
+                                    column_candidates[n] = col
+                                    if len(col[i])==1:
+                                        puzzle_change = True
+                                        row_index = i
+                                        col_index = n
+                                        # print(f"c{n}:{col_index}")
+                    # print(f'{candidate_change=}')
+                    # if candidate_change:
+                    #     break
+                    # Need to test if any candidate cell holds a single value
+                    # print(f'{puzzle_change=}')
+                    if puzzle_change:
+                        puzzle = SingleValueColumn(puzzle)
+                        return puzzle, True
+                    # candidate_change = False
+                    # look for pairs in the same square
+                    # print(f'{pair_ndx=}')
+                    if pair_ndx is not None and isinstance(pair_ndx, list) and len(pair_ndx)==2:
+                        # print(f'{pair_ndx=}')
+                        if pair_ndx[0][1]//3 == pair_ndx[1][1]//3:
+                            square_row = pair_ndx[0][1]//3
+                            square_col = pair_ndx[0][0]//3
+                            # print(f"Square found at {square_row},{square_col}")
+                            # now drop the values from other items in the square
+                            for i in range(square_row*3, square_row*3+3):
+                                for j in range(square_col*3, square_col*3+3):
+                                    if [j,i] != pair_ndx[0] and [j,i] != pair_ndx[1]:
+                                        for val in pair[0]:
+                                            # print(f'{column_candidates[j][i]=}')
+                                            if val in column_candidates[j][i]:
+                                                column_candidates[j][i].remove(val)
+                                                candidate_change = True
+                                                if len(column_candidates[j][i])==1:
+                                                    puzzle_change = True
+                                                    row_index = i
+                                                    col_index = j
+                                                    # print(f"cell {i},{j}:{column_candidates[j][i]}")
+                                    # if candidate_change:
+                                    #     break
+                                    # Need to test if any candidate cell holds a single value
+                                    if puzzle_change:
+                                        puzzle = SingleValueColumn(puzzle)
+                                        return puzzle, True
+                                        # loop
+        # look for pairs in rows
+        row_candidates = Transpose(column_candidates)
+        for n,row in enumerate(row_candidates):
+            two_candidates = [x for x in row if len(x) == 2]
+            # find identical iteams in two_candidates
+            pair = [x for x in two_candidates if two_candidates.count(x) == 2]
+            # print(f'{two_candidates=}')
+            # print(f"{pair=}")
+            # find the unique values in candidates
+            if pair != []:
+                if len(pair) == 2:
+                    unique_candidates = [pair[0]]
+                else:
+                    # unique_candidates = []
+                    # for c in col:
+                    #     if len(c) == 2:
+                    #         if c not in unique_candidates:
+                    #             unique_candidates.append(c)
+                    unique_candidates = [x for x in two_candidates if two_candidates.count(x) == 1 and len(x)==2]
+                # print(f'{unique_candidates=}')
+                for uc in unique_candidates:
+                    pair_ndx = [[n,i] for i, x in enumerate(row) if x == uc]
+                    # print(f'{pair_ndx=}')
+                    # for each item in pair[0], drop it from each item in col
+                    for val in pair[0]:
+                        # print(f"Length of col is {len(col)}")
+                        # print(f"{val=}")
+                        for i in range(len(row)):
+                            # print(f"{i=}")
+                            if row[i] != pair[0]:
+                                if val in row[i]:
+                                    row[i].remove(val)
+                                    candidate_change = True
+                                    row_candidates[n] = row
+                                    if len(row[i])==1:
+                                        puzzle_change = True
+                                        row_index = n
+                                        col_index = i
+                                        # print(f"r{n}:{col_index}")
+                    # print(f'{candidate_change=}')
+                    # if candidate_change:
+                    #     break
+                    # Need to test if any candidate cell holds a single value
+                    # print(f'{puzzle_change=}')
+                    if puzzle_change:
+                        # print(f'{row_candidates=}')
+                        puzzle = SingleValueRow(puzzle)
+                        return puzzle, True
+                    # candidate_change = False
+                    # look for pairs in the same square
+                    # print(f'{pair_ndx=}')
+                    if pair_ndx is not None and isinstance(pair_ndx, list) and len(pair_ndx)==2:
+                        # print(f'{pair_ndx=}')
+                        if pair_ndx[0][0]//3 == pair_ndx[1][0]//3:
+                            square_row = pair_ndx[0][1]//3
+                            square_col = pair_ndx[0][0]//3
+                            # print(f"Square found at {square_row},{square_col}")
+                            # now drop the values from other items in the square
+                            for i in range(square_row*3, square_row*3+3):
+                                for j in range(square_col*3, square_col*3+3):
+                                    if [j,i] != pair_ndx[0] and [j,i] != pair_ndx[1]:
+                                        for val in pair[0]:
+                                            # print(f'{row_candidates[j][i]=}')
+                                            if val in row_candidates[j][i]:
+                                                row_candidates[j][i].remove(val)
+                                                candidate_change = True
+                                                if len(row_candidates[j][i])==1:
+                                                    puzzle_change = True
+                                                    row_index = j
+                                                    col_index = i
+                                                    # print(f"cell {i},{j}:{column_candidates[j][i]}")
+                                    # if candidate_change:
+                                    #     break
+                                    # Need to test if any candidate cell holds a single value
+                                    if puzzle_change:
+                                        puzzle = SingleValueRow(puzzle)
+                                        return puzzle, True
+                                        # loop
     return puzzle, False
 
 
@@ -690,20 +887,33 @@ def main(args):
                         break
             Completed(puzzle, args)
             if puzzle_step == False:
-                console.rule("[bold red]Conclusion")
-                console.print(f"Nothing else to do on Dell {args.book}-{args.puzzle}", highlight=False)
+                puzzle, puzzle_step = PhaseEight(puzzle)
+                if puzzle_step == True:
+                    if FaultCheck(puzzle) == False:
+                        console.print(f"[bold red]Fault detected after Phase Eight on Dell {args.book}-{args.puzzle}[/]", highlight=False)
+                        print_sudoku(puzzle)
+                        break
+            Completed(puzzle, args)
+            if puzzle_step == False:
+                console.rule("[bold red]Conclusion[/bold red]")
+                console.print(f"[red reverse]Nothing else to do on Dell {args.book}-{args.puzzle}[/red reverse]", highlight=False)
                 print_sudoku(puzzle)
                 if 'Double' in args.book:
                     with open("data/output/DoubleSudoku202512.csv", "a") as f:
                         f.write(f"{args.puzzle},Unsolved\n")
                 candidates = CellCandidates(puzzle)
-                # console.print("[dim]Candidates for each cell:[/]", highlight=False)
+                console.print("\t[dim italic]Candidates for each cell:[/dim italic]", highlight=False)
                 # write candidates row by row
+                table = PrettyTable()
+                table.header = False
                 with open("data/output/candidates.txt", "w") as f:
                     for i in range(9):
                         row_candidates = [sorted(candidates[i][j]) for j in range(9)]
+                        table.add_row([''.join(item) if isinstance(item, list) else item for item in row_candidates])
+                        if i==2 or i==5:
+                            table.add_divider()
                         f.write(f"row[{i}]={row_candidates}\n")
-
+                print(table)
 
                 # for i in range(9):
                 #     row_candidates = [sorted(candidates[i][j]) for j in range(9)]

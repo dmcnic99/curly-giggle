@@ -29,7 +29,7 @@ def main(args):
     if args.function != 'query' and args.puzzle is None:
         console.print("[bold red]Error: --puzzle argument is required for insert, update, and delete functions[/bold red]")
         return
-    if args.function != 'query' and args.status is None:
+    if (args.function == 'insert' or args.function == 'update') and args.status is None:
         console.print("[bold red]Error: --status argument must be provided for Double Sudoku puzzles[/bold red]")
         return
     
@@ -61,7 +61,7 @@ def main(args):
                     console.print('[bold green]Insert successful[/bold green]')
             
             elif args.function == 'query':
-                console.print(f'[dim]Querying puzzles from book {args.book}[/dim]')
+                console.print(f'[dim]Querying puzzles from book {args.book}[/dim]', highlight=False)
                 if 'Double' in args.book:
                     cursor.execute('SELECT Book, PuzzleID, Status FROM DoubleSudoku ORDER BY PuzzleID DESC LIMIT 5')
                 else:
