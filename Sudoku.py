@@ -451,7 +451,8 @@ def PhaseSix(puzzle):
                         if num not in row_list[row] and num not in column_list[col]:
                             idx = row * 9 + col
                             puzzle = puzzle[:idx] + num + puzzle[idx + 1:]
-                            console.print(f"[dim]Phase 6: Value {num} placed at row {row+1} and col {col+1}[/]", highlight=False)
+                            s = f"\t[dim]6: Value {num} placed at row {row+1} and col {col+1}[/dim]"
+                            console.print(s.expandtabs(tabsize=6), highlight=False)
                             return puzzle, True
 
     # --- Check columns of length 6 ---
@@ -534,7 +535,7 @@ def PhaseSeven(puzzle):
                 val = candidates[x][y].pop()
                 idx = x * 9 + y
                 puzzle = puzzle[:idx] + val + puzzle[idx + 1:]
-                s = f"\t[dim]NothingLeft: Placed {val} at row {x+1} and col {y+1}[/]"
+                s = f"\t[dim]7: Placed {val} at row {x+1} and col {y+1}[/]"
                 console.print(s.expandtabs(tabsize=7), highlight = False)
                 return puzzle, True
 
@@ -562,7 +563,7 @@ def PhaseSeven(puzzle):
                     if num in candidates[x][y]:
                         idx = x * 9 + y
                         puzzle = puzzle[:idx] + num + puzzle[idx + 1:]
-                        s = f"\t[dim]7: Unique {num} in row {x+1} at col {y+1}[/dim]"
+                        s = f"\t[dim]7: unique {num} in row {x+1} at col {y+1}[/dim]"
                         console.print(s.expandtabs(tabsize=7), highlight = False)
                         return puzzle, True
 
@@ -663,7 +664,7 @@ def PhaseEight(puzzle):
                     # print(f'{puzzle_change=}')
                     if puzzle_change:
                         puzzle = SingleValueColumn(puzzle)
-                        return puzzle, True
+                        return puzzle, True, Transpose(column_candidates)
                     # candidate_change = False
                     # look for pairs in the same square
                     # print(f'{pair_ndx=}')
@@ -692,7 +693,7 @@ def PhaseEight(puzzle):
                                     # Need to test if any candidate cell holds a single value
                                     if puzzle_change:
                                         puzzle = SingleValueColumn(puzzle)
-                                        return puzzle, True
+                                        return puzzle, True, Transpose(column_candidates)
                                         # loop
         # look for pairs in rows
         row_candidates = Transpose(column_candidates)
@@ -741,13 +742,13 @@ def PhaseEight(puzzle):
                     if puzzle_change:
                         # print(f'{row_candidates=}')
                         puzzle = SingleValueRow(puzzle)
-                        return puzzle, True
+                        return puzzle, True, row_candidates
                     # candidate_change = False
                     # look for pairs in the same square
                     # print(f'{pair_ndx=}')
                     if pair_ndx is not None and isinstance(pair_ndx, list) and len(pair_ndx)==2:
                         # print(f'{pair_ndx=}')
-                        if pair_ndx[0][0]//3 == pair_ndx[1][0]//3:
+                        if pair_ndx[0][1]//3 == pair_ndx[1][1]//3:
                             square_row = pair_ndx[0][1]//3
                             square_col = pair_ndx[0][0]//3
                             # print(f"Square found at {square_row},{square_col}")
@@ -764,15 +765,15 @@ def PhaseEight(puzzle):
                                                     puzzle_change = True
                                                     row_index = j
                                                     col_index = i
-                                                    # print(f"cell {i},{j}:{column_candidates[j][i]}")
+                                                    print(f"cell {i},{j}:{row_candidates[j][i]}")
                                     # if candidate_change:
                                     #     break
                                     # Need to test if any candidate cell holds a single value
                                     if puzzle_change:
                                         puzzle = SingleValueRow(puzzle)
-                                        return puzzle, True
+                                        return puzzle, True, row_candidates
                                         # loop
-    return puzzle, False
+    return puzzle, False, row_candidates
 
 
 def Completed(puzzle, args):
@@ -887,7 +888,7 @@ def main(args):
                         break
             Completed(puzzle, args)
             if puzzle_step == False:
-                puzzle, puzzle_step = PhaseEight(puzzle)
+                puzzle, puzzle_step, row_candidates = PhaseEight(puzzle)
                 if puzzle_step == True:
                     if FaultCheck(puzzle) == False:
                         console.print(f"[bold red]Fault detected after Phase Eight on Dell {args.book}-{args.puzzle}[/]", highlight=False)
@@ -901,15 +902,15 @@ def main(args):
                 if 'Double' in args.book:
                     with open("data/output/DoubleSudoku202512.csv", "a") as f:
                         f.write(f"{args.puzzle},Unsolved\n")
-                candidates = CellCandidates(puzzle)
+                # candidates = CellCandidates(puzzle)
                 console.print("\t[dim italic]Candidates for each cell:[/dim italic]", highlight=False)
                 # write candidates row by row
                 table = PrettyTable()
                 table.header = False
                 with open("data/output/candidates.txt", "w") as f:
                     for i in range(9):
-                        row_candidates = [sorted(candidates[i][j]) for j in range(9)]
-                        table.add_row([''.join(item) if isinstance(item, list) else item for item in row_candidates])
+                        # row_candidates = [sorted(candidates[i][j]) for j in range(9)]
+                        table.add_row([''.join(item) if isinstance(item, list) else item for item in row_candidates[i]])
                         if i==2 or i==5:
                             table.add_divider()
                         f.write(f"row[{i}]={row_candidates}\n")
@@ -917,7 +918,7 @@ def main(args):
 
                 # for i in range(9):
                 #     row_candidates = [sorted(candidates[i][j]) for j in range(9)]
-                #     console.print(f"Row {i+1}: {row_candidates}", highlight=False)
+                #     console.print(f"Row {i+1}: {row_candidates[i]}", highlight=False)
                 break
     return
 
